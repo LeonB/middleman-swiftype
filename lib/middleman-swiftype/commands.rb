@@ -73,10 +73,26 @@ EOF
         shared_instance = ::Middleman::Application.server.inst
         options = self.swiftype_options(shared_instance)
 
-        pages = shared_instance.resources
-        pages = pages.find_all{|p| p.source_file.match(/\.html/) && !p.directory_index? }
-        print pages
+        # shared_instance.sitemap.resources.find_all do | a |
+        #   print a.path + "\n"
+        # end
 
+        pages = shared_instance.sitemap.resources
+        pages = pages.find_all{|p| p.path.match(/\.html/) && !p.directory_index? }
+
+        pages.each do |p|
+          # print p.url + "\n"
+          print "---------------------------------------\n"
+          print p.body
+          print "\n---------------------------------------\n"
+          asds()
+
+          # print p.metadata
+          # print "\n"
+
+        end
+
+        # https://github.com/swiftype/swiftype-rb
         # ::Swiftype.configure do |config|
         #   config.api_key = options.api_key
         # end
@@ -88,6 +104,8 @@ EOF
         # page = engine.document_type('page')
         # print page.documents
 
+        # https://swiftype.com/documentation/crawler#schema
+        # https://swiftype.com/documentation/meta_tags
         # title
         # url
         # sections
