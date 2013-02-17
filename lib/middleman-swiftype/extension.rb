@@ -5,7 +5,7 @@ require "middleman-core"
 module Middleman
   module Swiftype
 
-    class Options < Struct.new(:api_key, :engine_slug); end
+    class Options < Struct.new(:api_key, :engine_slug, :pages_selector, :process_html); end
 
     class << self
       def registered(app, options_hash={}, &block)
@@ -13,6 +13,8 @@ module Middleman
 
         options = Options.new(options_hash)
         yield options if block_given?
+
+        options.pages_selector ||= lambda { |p| p.path.match(/\.html/) && p.template? && !p.directory_index? }
 
         app.after_configuration do
           # create app.swiftype

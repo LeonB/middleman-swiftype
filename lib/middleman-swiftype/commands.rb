@@ -43,12 +43,16 @@ extension in config.rb.
 activate :swiftype do |swiftype|
   swiftype.api_key = 'MY_SECRET_API_KEY'
   swiftype.engine_name = 'my_awesome_blog'
+  swiftype.pages_selector = lambda { |p| p.path.match(/\.html/) && p.metadata[:options][:layout] == nil }
+  swiftype.process_html = lambda { |f| f.search('.//table[@class="highlighttable"]').remove }
 end
 EOF
       end
 
       def swiftype_options(shared_instance)
         require 'swiftype'
+        require 'nokogiri'
+        require 'digest'
 
         options = nil
 
@@ -73,46 +77,43 @@ EOF
         shared_instance = ::Middleman::Application.server.inst
         options = self.swiftype_options(shared_instance)
 
-        # shared_instance.sitemap.resources.find_all do | a |
-        #   print a.path + "\n"
-        # end
-
-        pages = shared_instance.sitemap.resources
-        pages = pages.find_all{|p| p.path.match(/\.html/) && !p.directory_index? }
-
-        pages.each do |p|
-          # print p.url + "\n"
-          print "---------------------------------------\n"
-          print p.body
-          print "\n---------------------------------------\n"
-          asds()
-
-          # print p.metadata
-          # print "\n"
-
+        # https://github.com/swiftype/swiftype-rb
+        ::Swiftype.configure do |config|
+          config.api_key = options.api_key
         end
 
-        # https://github.com/swiftype/swiftype-rb
-        # ::Swiftype.configure do |config|
-        #   config.api_key = options.api_key
-        # end
+        m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
+        m_pages.each do |p|
+          external_id = Digest::MD5.hexdigest(p.url)
+          title = p.metadata[:page]['title']
+          url = p.url
+          sections = []
+          
+          f = Nokogiri::HTML(p.render(:layout => false))
 
-        # # engine = ::Swiftype::Engine.new(:name => 'asdasd')
-        # # engine.create!
+          shared_instance.logger.info("Pushing contents of #{url} to swiftype")
+          next
 
-        # engine = ::Swiftype::Engine.find(options.engine_slug)
-        # page = engine.document_type('page')
-        # print page.documents
+          # optionally edit html
+          if options.process_html
+            options.process_html.call(f)
+          end
 
-        # https://swiftype.com/documentation/crawler#schema
-        # https://swiftype.com/documentation/meta_tags
-        # title
-        # url
-        # sections
-        # body
+          body = f.text
 
+          # https://swiftype.com/documentation/crawler#schema
+          # https://swiftype.com/documentation/meta_tags
+          shared_instance.logger.info("Pushing contents of #{url} to swiftype")
+          swiftype_client.create_or_update_document(options.engine_slug, 'page', {
+              :external_id => external_id,
+              :fields => [
+                  {:name => 'title', :value => title, :type => 'string'},
+                  {:name => 'url', :value => url, :type => 'enum'},
+                  # {:name => 'sections', :value => 'Stefan Buttcher', :type => 'string'},
+                  {:name => 'body', :value => body, :type => 'text'},
+              ]})
+        end
       end
-
     end
   end
 end
