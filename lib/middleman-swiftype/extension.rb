@@ -5,7 +5,7 @@ require "middleman-core"
 module Middleman
   module Swiftype
 
-    class Options < Struct.new(:api_key, :engine_slug, :pages_selector, :process_html); end
+    class Options < Struct.new(:api_key, :engine_slug, :pages_selector, :process_html, :generate_sections, :generate_info); end
 
     class << self
       def registered(app, options_hash={}, &block)

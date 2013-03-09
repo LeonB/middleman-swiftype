@@ -44,7 +44,9 @@ activate :swiftype do |swiftype|
   swiftype.api_key = 'MY_SECRET_API_KEY'
   swiftype.engine_name = 'my_awesome_blog'
   swiftype.pages_selector = lambda { |p| p.path.match(/\.html/) && p.metadata[:options][:layout] == nil }
-  swiftype.process_html = lambda { |f| f.search('.//table[@class="highlighttable"]').remove }
+  swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
+  swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
+  swiftype.generate_info = lambda { |f| 'This is my additional info' }
 end
 EOF
       end
@@ -82,35 +84,46 @@ EOF
           config.api_key = options.api_key
         end
 
+        swiftype_client = ::Swiftype::Easy.new
+
         m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
         m_pages.each do |p|
           external_id = Digest::MD5.hexdigest(p.url)
           title = p.metadata[:page]['title']
           url = p.url
           sections = []
-          
-          f = Nokogiri::HTML(p.render(:layout => false))
+          body = ''
+          info = ''
 
-          shared_instance.logger.info("Pushing contents of #{url} to swiftype")
-          next
+          f = Nokogiri::HTML.fragment(p.render(:layout => false))
 
           # optionally edit html
           if options.process_html
             options.process_html.call(f)
           end
-
           body = f.text
+
+          if options.generate_sections
+            sections = options.generate_sections.call(p)
+          end
+
+          # optionally generate extra info
+          if options.generate_info
+            info = options.generate_info.call(f)
+          end
 
           # https://swiftype.com/documentation/crawler#schema
           # https://swiftype.com/documentation/meta_tags
           shared_instance.logger.info("Pushing contents of #{url} to swiftype")
+          #next
           swiftype_client.create_or_update_document(options.engine_slug, 'page', {
               :external_id => external_id,
               :fields => [
                   {:name => 'title', :value => title, :type => 'string'},
                   {:name => 'url', :value => url, :type => 'enum'},
-                  # {:name => 'sections', :value => 'Stefan Buttcher', :type => 'string'},
+                  {:name => 'sections', :value => sections, :type => 'string'},
                   {:name => 'body', :value => body, :type => 'text'},
+                  {:name => 'info', :value => info, :type => 'string'},
               ]})
         end
       end
