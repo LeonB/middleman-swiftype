@@ -47,6 +47,7 @@ activate :swiftype do |swiftype|
   swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
+  swiftype.generate_image = lambda { |p| "#{settings.url}#{p.metadata[:page]['banner']}" if p.metadata[:page]['banner'] }
 end
 EOF
       end
@@ -94,6 +95,7 @@ EOF
           sections = []
           body = ''
           info = ''
+          image = ''
 
           f = Nokogiri::HTML.fragment(p.render(:layout => false))
 
@@ -112,6 +114,11 @@ EOF
             info = options.generate_info.call(f)
           end
 
+          # optional image
+          if options.generate_image
+            image = options.generate_image.call(p)
+          end
+
           # https://swiftype.com/documentation/crawler#schema
           # https://swiftype.com/documentation/meta_tags
           shared_instance.logger.info("Pushing contents of #{url} to swiftype")
@@ -124,6 +131,7 @@ EOF
                   {:name => 'sections', :value => sections, :type => 'string'},
                   {:name => 'body', :value => body, :type => 'text'},
                   {:name => 'info', :value => info, :type => 'string'},
+                  {:name => 'image', :value => image, :type => 'enum'},
               ]})
         end
       end
