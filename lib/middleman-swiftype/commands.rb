@@ -119,20 +119,29 @@ EOF
             image = options.generate_image.call(p)
           end
 
+          fields = [
+            {:name => 'title', :value => title, :type => 'string'},
+            {:name => 'url', :value => url, :type => 'enum'},
+            {:name => 'body', :value => body, :type => 'text'},
+            {:name => 'info', :value => info, :type => 'string'}
+          ]
+
+          if sections.length > 0
+            {:name => 'sections', :value => sections, :type => 'string'}
+          end
+
+          if image
+            fields << {:name => 'image', :value => image, :type => 'enum'}
+          end
+
           # https://swiftype.com/documentation/crawler#schema
           # https://swiftype.com/documentation/meta_tags
           shared_instance.logger.info("Pushing contents of #{url} to swiftype")
           #next
           swiftype_client.create_or_update_document(options.engine_slug, 'page', {
               :external_id => external_id,
-              :fields => [
-                  {:name => 'title', :value => title, :type => 'string'},
-                  {:name => 'url', :value => url, :type => 'enum'},
-                  {:name => 'sections', :value => sections, :type => 'string'},
-                  {:name => 'body', :value => body, :type => 'text'},
-                  {:name => 'info', :value => info, :type => 'string'},
-                  {:name => 'image', :value => image, :type => 'enum'},
-              ]})
+              :fields => fields
+          })
         end
       end
     end
