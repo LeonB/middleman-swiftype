@@ -5,10 +5,10 @@ Gem::Specification.new do |s|
   s.name        = "middleman-swiftype"
   s.version     = "0.0.1"
   s.platform    = Gem::Platform::RUBY
-  # s.authors     = ["Your Name"]
-  # s.email       = ["email@example.com"]
-  # s.homepage    = "http://example.com"
-  # s.summary     = %q{A short summary of your extension}
+  s.authors     = ["Leon Bogaert"]
+  s.email       = ["leonbogaert@gmail.com"]
+  s.homepage    = "http://www.vanutsteen.nl"
+  s.summary     = %q{A swiftype sync for middleman}
   # s.description = %q{A longer description of your extension}
 
   s.files         = `git ls-files`.split("\n")
