@@ -85,7 +85,7 @@ EOF
           config.api_key = options.api_key
         end
 
-        swiftype_client = ::Swiftype::Easy.new
+        swiftype_client = ::Swiftype::Client.new
 
         m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
         m_pages.each do |p|
