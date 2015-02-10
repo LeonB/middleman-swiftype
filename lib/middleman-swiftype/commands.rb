@@ -29,6 +29,7 @@ module Middleman
 
       def swiftype
         self.push_to_swiftype
+        self.delete_orphans if options.clean
       end
 
       protected
@@ -144,6 +145,36 @@ EOF
           })
         end
       end
+
+      def delete_orphans
+        shared_instance = ::Middleman::Application.server.inst
+        options = self.swiftype_options(shared_instance)
+
+        # https://github.com/swiftype/swiftype-rb
+        ::Swiftype.configure do |config|
+          config.api_key = options.api_key
+        end
+
+        per_page = 100
+
+        swiftype_client = ::Swiftype::Client.new
+
+        engine = swiftype_client.engine(options.engine_slug)
+        pages = (engine['document_count']/per_page.to_f).ceil
+
+        swiftype_documents = []
+        for i in 1..pages
+          swiftype_documents += swiftype_client.documents(options.engine_slug, 'page', i, per_page).collect{ |d| d['external_id'] }
+        end
+
+        m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
+        current_pages = m_pages.collect{ |p| Digest::MD5.hexdigest(p.url)}
+
+        orphans = swiftype_documents - current_pages
+
+        swiftype_client.destroy_documents(options.engine_slug, 'page', orphans) if orphans.any?
+      end
     end
   end
 end
+
