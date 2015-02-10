@@ -172,7 +172,7 @@ EOF
 
         orphans = swiftype_documents - current_pages
 
-        swiftype_client.destroy_documents(options.engine_slug, 'page', orphans)
+        swiftype_client.destroy_documents(options.engine_slug, 'page', orphans) if orphans.any?
       end
     end
   end
