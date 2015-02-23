@@ -1,2 +1,4 @@
 # Ignore bundler lock file
 Gemfile.lock
+
+fixtures/swiftype-app/source/search.json

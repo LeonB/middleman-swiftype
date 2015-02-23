@@ -1,17 +1,18 @@
-source :rubygems
+source "https://rubygems.org"
 
 # Specify your gem's dependencies in middleman-swiftype.gemspec
 gemspec
 
 group :development do
-  gem "rake",     "~> 0.9.2"
-  gem "rdoc",     "~> 3.9"
-  gem "yard",     "~> 0.8.0"
+  gem "rake", "~> 10.4.2"
+  gem "rdoc", "~> 4.2.0"
+  gem "yard", "~> 0.8.7.6"
 end
 
 group :test do
-  gem "cucumber", "~> 1.2.0"
+  gem "cucumber", "~> 1.3.19"
   gem "fivemat"
-  gem "aruba",    "~> 0.4.11"
-  gem "rspec",    "~> 2.7"
+  gem "aruba", "~> 0.6.2"
+  gem "swiftype"
+  gem "rspec"
 end
