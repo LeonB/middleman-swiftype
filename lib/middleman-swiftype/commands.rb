@@ -21,18 +21,18 @@ module Middleman
         true
       end
 
-      desc "swiftype", "Push you documents to swiftype"
+      desc "swiftype", "Push your documents to swiftype"
       method_option "clean",
         :type => :boolean,
         :aliases => "-c",
         :desc => "Remove orphaned files or directories on the remote host"
-      method_option "only_generate",
+      method_option "only-generate",
         :type => :boolean,
         :aliases => "-g",
-        :desc => ""
+        :desc => "Generate a search.json file without pushing it"
 
       def swiftype
-        if options[:only_generate]
+        if options[:"only-generate"]
           File.open("./source/search.json", "w") do |f|
             f.write(self.generate_swiftype_records.to_json)
           end
