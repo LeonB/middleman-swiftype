@@ -21,14 +21,26 @@ module Middleman
         true
       end
 
-      desc "swiftype", "Push you documents to swiftype"
+      desc "swiftype", "Push your documents to swiftype"
       method_option "clean",
         :type => :boolean,
         :aliases => "-c",
         :desc => "Remove orphaned files or directories on the remote host"
+      method_option "only-generate",
+        :type => :boolean,
+        :aliases => "-g",
+        :desc => "Generate a search.json file without pushing it"
 
       def swiftype
-        self.push_to_swiftype
+        if options[:"only-generate"]
+          Dir.mkdir('./build') unless File.exist?('./build')
+          File.delete('./build/search.json') if File.exist?('./build/search.json')
+          File.open("./build/search.json", "w") do |f|
+            f.write(self.generate_swiftype_records.to_json)
+          end
+        else
+          self.push_to_swiftype(self.generate_swiftype_records)
+        end
       end
 
       protected
@@ -76,18 +88,12 @@ EOF
         options
       end
 
-      def push_to_swiftype
-        shared_instance = ::Middleman::Application.server.inst
+      def generate_swiftype_records
+        records = []
+
         options = self.swiftype_options(shared_instance)
-
-        # https://github.com/swiftype/swiftype-rb
-        ::Swiftype.configure do |config|
-          config.api_key = options.api_key
-        end
-
-        swiftype_client = ::Swiftype::Client.new
-
         m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
+
         m_pages.each do |p|
           external_id = Digest::MD5.hexdigest(p.url)
           title = p.metadata[:page]['title']
@@ -134,15 +140,51 @@ EOF
             fields << {:name => 'image', :value => image, :type => 'enum'}
           end
 
+          records << {
+            :external_id => external_id,
+            :fields => fields
+          }
+        end
+
+        records
+      end
+
+      def push_to_swiftype(records)
+        options = self.swiftype_options(shared_instance)
+        # https://github.com/swiftype/swiftype-rb
+        ::Swiftype.configure do |config|
+          config.api_key = options.api_key
+        end
+
+        swiftype_client = ::Swiftype::Client.new
+
+        records.each do |record|
           # https://swiftype.com/documentation/crawler#schema
           # https://swiftype.com/documentation/meta_tags
-          shared_instance.logger.info("Pushing contents of #{url} to swiftype")
+          url_field = record[:fields].find { |fields| fields[:name] == "url" }
+          shared_instance.logger.info("Pushing contents of #{url_field[:value]} to swiftype")
           #next
-          swiftype_client.create_or_update_document(options.engine_slug, 'page', {
-              :external_id => external_id,
-              :fields => fields
-          })
+          begin
+            swiftype_client.create_or_update_document(options.engine_slug, swiftype_document_type, {
+                :external_id => record[:external_id],
+                :fields => record[:fields]
+            })
+          rescue ::Swiftype::NonExistentRecord
+            swiftype_client.create_document_type(options.engine_slug, swiftype_document_type)
+            swiftype_client.create_or_update_document(options.engine_slug, 'page', {
+                :external_id => record[:external_id],
+                :fields => record[:fields]
+            })
+          end
         end
+      end
+
+      def shared_instance
+        @shared_instance ||= ::Middleman::Application.server.inst
+      end
+
+      def swiftype_document_type
+        "page"
       end
     end
   end

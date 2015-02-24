@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
 
   # Additional dependencies
   s.add_runtime_dependency("swiftype", [">= 0.0.4"])
+  s.add_runtime_dependency("nokogiri")
 end
