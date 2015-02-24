@@ -33,7 +33,9 @@ module Middleman
 
       def swiftype
         if options[:"only-generate"]
-          File.open("./source/search.json", "w") do |f|
+          Dir.mkdir('./build') unless File.exist?('./build')
+          File.delete('./build/search.json') if File.exist?('./build/search.json')
+          File.open("./build/search.json", "w") do |f|
             f.write(self.generate_swiftype_records.to_json)
           end
         else
