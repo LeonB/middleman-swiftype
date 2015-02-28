@@ -33,10 +33,12 @@ module Middleman
 
       def swiftype
         if options[:"only-generate"]
-          build_dir = ::Middleman::Application.build_dir
-          Dir.mkdir("./#{build_dir}") unless File.exist?("./#{build_dir}")
-          File.delete("./#{build_dir}/search.json") if File.exist?("./#{build_dir}/search.json")
-          File.open("./#{build_dir}/search.json", "w") do |f|
+          shared_instance.logger.info("Building content...")
+          builder = Middleman::Cli::Build.new
+          builder.build
+
+          shared_instance.logger.info("Done. Creating search.json...")
+          File.open("./#{Middleman::Application.build_dir}/search.json", "w") do |f|
             f.write(self.generate_swiftype_records.to_json)
           end
         else
@@ -91,6 +93,31 @@ EOF
         options
       end
 
+      def current_guide(current_page)
+        path = current_page.path.gsub('.html', '')
+        guide_path = path.split("/")[0]
+
+        current_guide = shared_instance.data.guides.find do |guide|
+          guide.url == guide_path
+        end
+
+        current_guide
+      end
+
+      def current_chapter(current_page)
+        guide = current_guide(current_page)
+        return unless guide
+
+        path = current_page.path.gsub('.html', '')
+        chapter_path = path.split('/')[1..-1].join('/')
+
+        current_chapter = guide.chapters.find do |chapter|
+          chapter.url == chapter_path
+        end
+
+        current_chapter
+      end
+
       def generate_swiftype_records
         records = []
 
@@ -100,6 +127,12 @@ EOF
         m_pages.each do |p|
           external_id = Digest::MD5.hexdigest(p.url)
           title = p.metadata[:page]['title']
+
+          if options.title_selector
+            chapter = current_chapter(p)
+            title = chapter.title
+          end
+
           url = p.url
           sections = []
           body = ''
@@ -183,7 +216,7 @@ EOF
       end
 
       def shared_instance
-        @shared_instance ||= ::Middleman::Application.server.inst
+        @shared_instance ||= Middleman::Application.server.inst
       end
 
       def swiftype_document_type
