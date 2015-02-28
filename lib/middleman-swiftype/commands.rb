@@ -93,31 +93,6 @@ EOF
         options
       end
 
-      def current_guide(current_page)
-        path = current_page.path.gsub('.html', '')
-        guide_path = path.split("/")[0]
-
-        current_guide = shared_instance.data.guides.find do |guide|
-          guide.url == guide_path
-        end
-
-        current_guide
-      end
-
-      def current_chapter(current_page)
-        guide = current_guide(current_page)
-        return unless guide
-
-        path = current_page.path.gsub('.html', '')
-        chapter_path = path.split('/')[1..-1].join('/')
-
-        current_chapter = guide.chapters.find do |chapter|
-          chapter.url == chapter_path
-        end
-
-        current_chapter
-      end
-
       def generate_swiftype_records
         records = []
 
@@ -126,11 +101,12 @@ EOF
 
         m_pages.each do |p|
           external_id = Digest::MD5.hexdigest(p.url)
-          title = p.metadata[:page]['title']
 
+          # optional selector for retrieving the page title
           if options.title_selector
-            chapter = current_chapter(p)
-            title = chapter.title
+            title = options.title_selector.call(shared_instance, p)
+          else
+            title = p.metadata[:page]['title']
           end
 
           url = p.url
