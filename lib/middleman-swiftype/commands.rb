@@ -33,9 +33,10 @@ module Middleman
 
       def swiftype
         if options[:"only-generate"]
-          Dir.mkdir('./build') unless File.exist?('./build')
-          File.delete('./build/search.json') if File.exist?('./build/search.json')
-          File.open("./build/search.json", "w") do |f|
+          build_dir = ::Middleman::Application.build_dir
+          Dir.mkdir("./#{build_dir}") unless File.exist?("./#{build_dir}")
+          File.delete("./#{build_dir}/search.json") if File.exist?("./#{build_dir}/search.json")
+          File.open("./#{build_dir}/search.json", "w") do |f|
             f.write(self.generate_swiftype_records.to_json)
           end
         else
@@ -64,7 +65,7 @@ end
 EOF
       end
 
-      def swiftype_options(shared_instance)
+      def swiftype_options(shared_instance, generate_only=false)
         require 'swiftype'
         require 'nokogiri'
         require 'digest'
@@ -76,6 +77,8 @@ EOF
         rescue
           print_usage_and_die "You need to activate the swiftype extension in config.rb."
         end
+
+        return options if generate_only
 
         if (!options.api_key)
           print_usage_and_die "The swiftype extension requires you to set an api_key."
@@ -91,7 +94,7 @@ EOF
       def generate_swiftype_records
         records = []
 
-        options = self.swiftype_options(shared_instance)
+        options = self.swiftype_options(shared_instance, true)
         m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
 
         m_pages.each do |p|
