@@ -22,6 +22,7 @@ activate :swiftype do |swiftype|
   swiftype.api_key = 'MY_SECRET_API_KEY'
   swiftype.engine_slug = 'my_awesome_blog'
   swiftype.pages_selector = lambda { |p| p.path.match(/\.html/) && p.metadata[:options][:layout] == nil }
+  swiftype.title_selector = lamda { |mm_instance, p| '...' }
   swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
@@ -33,6 +34,8 @@ end
 The api key and engine slug can be found in the swiftype dashboard.
 
 The `pages_selector` can be used to filter the pages that are searchable. If this option is not used all pages will be searched. So this will include any rss or atom feeds generated.
+
+The `title_selector` can be used to look up a page's title (for each page). For example, maybe you store the titles in a customized table of contents file.
 
 `process_html` can be used for transforming the html content that will be send to swiftype. In my example I'm using this to remove line numbers in code blocks: I don't want them to be searchable by swiftype.
 

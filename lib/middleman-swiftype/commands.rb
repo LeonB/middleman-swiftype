@@ -59,6 +59,7 @@ activate :swiftype do |swiftype|
   swiftype.api_key = 'MY_SECRET_API_KEY'
   swiftype.engine_slug = 'my_awesome_blog'
   swiftype.pages_selector = lambda { |p| p.path.match(/\.html/) && p.metadata[:options][:layout] == nil }
+  swiftype.title_selector = lamda { |mm_instance, p| '...' }
   swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
