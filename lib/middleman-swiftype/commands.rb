@@ -39,7 +39,9 @@ module Middleman
 
           shared_instance.logger.info("Done. Creating search.json...")
           File.open("./#{Middleman::Application.build_dir}/search.json", "w") do |f|
+            f.write("{\"documents\": ")
             f.write(self.generate_swiftype_records.to_json)
+            f.write("}")
           end
         else
           self.push_to_swiftype(self.generate_swiftype_records)
