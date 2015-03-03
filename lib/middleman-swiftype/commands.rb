@@ -66,7 +66,7 @@ activate :swiftype do |swiftype|
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
   swiftype.generate_image = lambda { |p| "#{settings.url}#{p.metadata[:page]['banner']}" if p.metadata[:page]['banner'] }
-  swiftype.exclude_empty_titles = true
+  swiftype.should_index = lamda { |p, title| '...' }
 end
 EOF
       end
@@ -113,8 +113,6 @@ EOF
             title = p.metadata[:page]['title']
           end
 
-          next if options.exclude_empty_titles and title.to_s == ''
-
           url = p.url
           sections = []
           body = ''
@@ -141,6 +139,11 @@ EOF
           # optional image
           if options.generate_image
             image = options.generate_image.call(p)
+          end
+
+          if options.should_index
+            should_index = options.should_index.call(p, title)
+            next unless should_index
           end
 
           fields = [

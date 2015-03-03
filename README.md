@@ -26,7 +26,7 @@ activate :swiftype do |swiftype|
   swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
-  swiftype.exclude_empty_titles = true
+  swiftype.should_index = lamda { |p, title| '...' }
 end
 ```
 
@@ -44,4 +44,4 @@ The `title_selector` can be used to look up a page's title (for each page). For 
 
 `generate_info` is an option that can be used for anything. _I_ use it for storing the summary of each post.
 
-`exclude_empty_titles` will skip indexing resources which do not have a title if set to true
+`should_index` can be used to filter out pages that you don't want to index. Return true to index in swiftype, false to skip.
