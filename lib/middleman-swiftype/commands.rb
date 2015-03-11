@@ -33,10 +33,15 @@ module Middleman
 
       def swiftype
         if options[:"only-generate"]
-          Dir.mkdir('./build') unless File.exist?('./build')
-          File.delete('./build/search.json') if File.exist?('./build/search.json')
-          File.open("./build/search.json", "w") do |f|
+          shared_instance.logger.info("Building content...")
+          builder = Middleman::Cli::Build.new
+          builder.build
+
+          shared_instance.logger.info("Done. Creating search.json...")
+          File.open("./#{Middleman::Application.build_dir}/search.json", "w") do |f|
+            f.write("{\"documents\": ")
             f.write(self.generate_swiftype_records.to_json)
+            f.write("}")
           end
         else
           self.push_to_swiftype(self.generate_swiftype_records)
@@ -56,15 +61,17 @@ activate :swiftype do |swiftype|
   swiftype.api_key = 'MY_SECRET_API_KEY'
   swiftype.engine_slug = 'my_awesome_blog'
   swiftype.pages_selector = lambda { |p| p.path.match(/\.html/) && p.metadata[:options][:layout] == nil }
+  swiftype.title_selector = lamda { |mm_instance, p| '...' }
   swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
   swiftype.generate_image = lambda { |p| "#{settings.url}#{p.metadata[:page]['banner']}" if p.metadata[:page]['banner'] }
+  swiftype.should_index = lamda { |p, title| '...' }
 end
 EOF
       end
 
-      def swiftype_options(shared_instance)
+      def swiftype_options(shared_instance, generate_only=false)
         require 'swiftype'
         require 'nokogiri'
         require 'digest'
@@ -76,6 +83,8 @@ EOF
         rescue
           print_usage_and_die "You need to activate the swiftype extension in config.rb."
         end
+
+        return options if generate_only
 
         if (!options.api_key)
           print_usage_and_die "The swiftype extension requires you to set an api_key."
@@ -91,12 +100,19 @@ EOF
       def generate_swiftype_records
         records = []
 
-        options = self.swiftype_options(shared_instance)
+        options = self.swiftype_options(shared_instance, true)
         m_pages = shared_instance.sitemap.resources.find_all{|p| options.pages_selector.call(p) }
 
         m_pages.each do |p|
           external_id = Digest::MD5.hexdigest(p.url)
-          title = p.metadata[:page]['title']
+
+          # optional selector for retrieving the page title
+          if options.title_selector
+            title = options.title_selector.call(shared_instance, p)
+          else
+            title = p.metadata[:page]['title']
+          end
+
           url = p.url
           sections = []
           body = ''
@@ -125,10 +141,15 @@ EOF
             image = options.generate_image.call(p)
           end
 
+          if options.should_index
+            should_index = options.should_index.call(p, title)
+            next unless should_index
+          end
+
           fields = [
             {:name => 'title', :value => title, :type => 'string'},
             {:name => 'url', :value => url, :type => 'enum'},
-            {:name => 'body', :value => body, :type => 'text'},
+            {:name => 'body', :value => body, :type => 'string'},
             {:name => 'info', :value => info, :type => 'string'}
           ]
 
@@ -180,7 +201,7 @@ EOF
       end
 
       def shared_instance
-        @shared_instance ||= ::Middleman::Application.server.inst
+        @shared_instance ||= Middleman::Application.server.inst
       end
 
       def swiftype_document_type
