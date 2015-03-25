@@ -7,6 +7,7 @@ module Middleman
 
     class Options < Struct.new(:api_key, :engine_slug, :pages_selector, :process_html, :generate_sections, :generate_info, :generate_image, :title_selector, :should_index); end
 
+    # For more info, see https://middlemanapp.com/advanced/custom_extensions/
     class << self
       def registered(app, options_hash={}, &block)
         app.send :include, Helpers
@@ -19,6 +20,11 @@ module Middleman
         app.after_configuration do
           # create app.swiftype
           swiftype(options)
+        end
+
+        app.after_build do |builder|
+          #helper = MiddlemanSwiftypeHelper.new swiftype(options), builder
+          #todo
         end
       end
 
