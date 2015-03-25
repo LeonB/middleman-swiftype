@@ -32,18 +32,18 @@ module Middleman
         :desc => "Generate a search.json file without pushing it"
 
       def swiftype
-        shared_instance = Middleman::Application.server.inst
+        mm_instance = Middleman::Application.server.inst
         generate_only = options[:"only-generate"]
-        plugin_options = swiftype_options(shared_instance, generate_only)
-        helper = MiddlemanSwiftypeHelper.new plugin_options, shared_instance
+        plugin_options = swiftype_options(mm_instance, generate_only)
+        helper = MiddlemanSwiftypeHelper.new plugin_options, mm_instance
 
         if generate_only
           #TODO: remove this once after_build handler is complete
-          shared_instance.logger.info("Building content...")
+          mm_instance.logger.info("Building content...")
           builder = Middleman::Cli::Build.new
           builder.build
 
-          shared_instance.logger.info("Done. Creating search.json...")
+          mm_instance.logger.info("Done. Creating search.json...")
           File.open("./#{Middleman::Application.build_dir}/search.json", "w") do |f|
             f.write("{\"documents\": ")
             f.write(helper.generate_swiftype_records.to_json)
@@ -77,11 +77,11 @@ end
 EOF
       end
 
-      def swiftype_options(shared_instance, generate_only)
+      def swiftype_options(mm_instance, generate_only)
         options = nil
 
         begin
-          options = shared_instance.swiftype.options
+          options = mm_instance.swiftype.options
         rescue
           print_usage_and_die "You need to activate the swiftype extension in config.rb."
         end
