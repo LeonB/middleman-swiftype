@@ -2,3 +2,4 @@
 Gemfile.lock
 
 fixtures/swiftype-app/source/search.json
+tmp/

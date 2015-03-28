@@ -3,9 +3,9 @@ require 'nokogiri'
 require 'digest'
 
 class MiddlemanSwiftypeHelper
-  def initialize(plugin_options, mm_instance)
+  def initialize(plugin_options)
     @options = plugin_options
-    @mm_instance = mm_instance
+    @mm_instance = Middleman::Application.server.inst
   end
 
   def swiftype_document_type
@@ -111,5 +111,17 @@ class MiddlemanSwiftypeHelper
         })
       end
     end
+  end
+
+  def generate_search_json
+    @mm_instance.logger.info("Generating search.json...")
+
+    File.open("./#{Middleman::Application.build_dir}/search.json", "w") do |f|
+      f.write("{\"documents\": ")
+      f.write(self.generate_swiftype_records.to_json)
+      f.write("}")
+    end
+
+    @mm_instance.logger.info("Finished generating search.json.")
   end
 end

@@ -35,20 +35,10 @@ module Middleman
         mm_instance = Middleman::Application.server.inst
         generate_only = options[:"only-generate"]
         plugin_options = swiftype_options(mm_instance, generate_only)
-        helper = MiddlemanSwiftypeHelper.new plugin_options, mm_instance
+        helper = MiddlemanSwiftypeHelper.new plugin_options
 
         if generate_only
-          #TODO: remove this once after_build handler is complete
-          mm_instance.logger.info("Building content...")
-          builder = Middleman::Cli::Build.new
-          builder.build
-
-          mm_instance.logger.info("Done. Creating search.json...")
-          File.open("./#{Middleman::Application.build_dir}/search.json", "w") do |f|
-            f.write("{\"documents\": ")
-            f.write(helper.generate_swiftype_records.to_json)
-            f.write("}")
-          end
+          helper.generate_search_json
         else
           helper.push_to_swiftype(helper.generate_swiftype_records)
         end

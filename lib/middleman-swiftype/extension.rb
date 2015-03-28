@@ -23,8 +23,8 @@ module Middleman
         end
 
         app.after_build do |builder|
-          #helper = MiddlemanSwiftypeHelper.new swiftype(options), builder
-          #todo
+          helper = MiddlemanSwiftypeHelper.new options
+          helper.generate_search_json
         end
       end
 
