@@ -61,7 +61,7 @@ activate :swiftype do |swiftype|
   swiftype.process_html = lambda { |f| f.search('.//div[@class="linenodiv"]').remove }
   swiftype.generate_sections = lambda { |p| (p.metadata[:page]['tags'] ||= []) + (p.metadata[:page]['categories'] ||= []) }
   swiftype.generate_info = lambda { |f| TruncateHTML.truncate_html(strip_img(f.to_s), blog.options.summary_length, '...') }
-  swiftype.generate_image = lambda { |p| "#{settings.url}#{p.metadata[:page]['banner']}" if p.metadata[:page]['banner'] }
+  swiftype.generate_image = lambda { |p| "\#{settings.url}\#{p.metadata[:page]['banner']}" if p.metadata[:page]['banner'] }
   swiftype.should_index = lamda { |p, title| '...' }
 end
 EOF
