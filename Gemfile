@@ -10,9 +10,5 @@ group :development do
 end
 
 group :test do
-  gem "cucumber", "~> 1.3.19"
-  gem "fivemat"
-  gem "aruba", "~> 0.6.2"
-  gem "swiftype"
-  gem "rspec"
+  gem "rspec", "~> 3.2"
 end
