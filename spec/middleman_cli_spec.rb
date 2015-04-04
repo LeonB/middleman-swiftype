@@ -3,7 +3,7 @@ require 'middleman-core/profiling'
 
 describe "running the middleman cli" do
   it "generates 'search.json'" do
-    Dir.chdir("fixtures/swiftype-app") do
+    Dir.chdir("spec/fixtures/swiftype-app") do
       ENV['MM_ROOT'] = Dir.pwd
       builder = Middleman::Cli::Build.new
       builder.invoke(:build)

@@ -14,7 +14,7 @@ describe MiddlemanSwiftypeHelper do
   end
 
   it 'generates JSON in which the body type is "string"' do
-    Dir.chdir("fixtures/swiftype-app") do
+    Dir.chdir("spec/fixtures/swiftype-app") do
       helper = MiddlemanSwiftypeHelper.new(options)
       json = helper.generate_swiftype_records
       body_type = json[0][:fields][2][:type]
