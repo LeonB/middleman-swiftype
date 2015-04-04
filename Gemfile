@@ -11,5 +11,5 @@ end
 
 group :test do
   gem "swiftype"
-  gem "rspec"
+  gem "rspec", "~> 3.2"
 end
