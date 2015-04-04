@@ -45,3 +45,11 @@ The `title_selector` can be used to look up a page's title (for each page). For 
 `generate_info` is an option that can be used for anything. _I_ use it for storing the summary of each post.
 
 `should_index` can be used to filter out pages that you don't want to index. Return true to index in swiftype, false to skip.
+
+## Tests ##
+
+This project is tested with RSpec. To run the tests, simply type:
+
+```
+$ bundle exec rspec
+```
