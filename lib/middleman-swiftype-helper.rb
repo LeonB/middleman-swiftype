@@ -63,7 +63,7 @@ class MiddlemanSwiftypeHelper
       fields = [
         {:name => 'title', :value => title, :type => 'string'},
         {:name => 'url', :value => url, :type => 'enum'},
-        {:name => 'body', :value => body, :type => 'string'},
+        {:name => 'body', :value => body, :type => 'text'},
         {:name => 'info', :value => info, :type => 'string'}
       ]
 

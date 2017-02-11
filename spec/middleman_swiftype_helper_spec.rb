@@ -18,7 +18,7 @@ describe MiddlemanSwiftypeHelper do
       helper = MiddlemanSwiftypeHelper.new(options)
       json = helper.generate_swiftype_records
       body_type = json[0][:fields][2][:type]
-      expect(body_type).to eq "string"
+      expect(body_type).to eq "text"
     end
   end
 end
